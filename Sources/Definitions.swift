@@ -150,6 +150,6 @@ class Definitions {
     }
     
     private func throwError(_ kind: ParseError.Kind) throws -> Never  {
-        throw ParseError(kind: kind, line: scanner.line, column: scanner.column)
+        throw ParseError(kind: kind, line: scanner.line, column: scanner.column, offendingLine: scanner.lineBeingParsed)
     }
 }

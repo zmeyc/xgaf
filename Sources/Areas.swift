@@ -10,6 +10,7 @@ class Areas {
     var fieldDefinitions: FieldDefinitions!
     var currentEntity: Entity!
     var currentFieldName = ""
+    var currentStructureName = ""
     
     init(definitions: Definitions) {
         self.definitions = definitions
@@ -21,6 +22,7 @@ class Areas {
         scanner = Scanner(string: contents)
         currentEntity = nil
         currentFieldName = ""
+        currentStructureName = ""
         
         try scanner.skipComments()
         while !scanner.isAtEnd {
@@ -53,9 +55,62 @@ class Areas {
         default:
             break
         }
-        try scanValue()
+        
+        if !currentStructureName.isEmpty {
+            currentFieldName = "\(currentStructureName).\(currentFieldName)"
+        }
+        
+        let requireFieldSeparator: Bool
+        if try openStructure() {
+            print("--- Structure opened: \(currentStructureName)")
+            requireFieldSeparator = false
+        } else {
+            try scanValue()
+            requireFieldSeparator = true
+        }
+
+        if try closeStructure() {
+            print("--- Structure closed")
+        }
+
+        if requireFieldSeparator {
+            try scanner.skipping(CharacterSet.whitespaces) {
+                try scanner.skipComments()
+                guard scanner.skipString(":") ||
+                    scanner.skipString("\r\n") ||
+                    scanner.skipString("\n") ||
+                    scanner.isAtEnd
+                else {
+                    try throwError(.expectedFieldSeparator)
+                }
+            }
+        }
     }
     
+    private func openStructure() throws -> Bool {
+        guard currentStructureName.isEmpty else { return false }
+        
+        try scanner.skipComments()
+        guard scanner.skipString("(") else {
+            return false // Not a structure
+        }
+        
+        currentStructureName = currentFieldName
+        return true
+    }
+
+    private func closeStructure() throws -> Bool {
+        guard !currentStructureName.isEmpty else { return false }
+        
+        try scanner.skipComments()
+        guard scanner.skipString(")") else {
+            return false
+        }
+        
+        currentStructureName = ""
+        return true
+    }
+
     private func scanValue() throws {
         if fieldDefinitions == nil {
             try throwError(.unsupportedEntityType)
@@ -78,15 +133,6 @@ class Areas {
             //default: fatalError()
             }
             assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
-            
-            try scanner.skipComments()
-            guard scanner.skipString(":") ||
-                scanner.skipString("\r\n") ||
-                scanner.skipString("\n") ||
-                scanner.isAtEnd
-            else {
-                try throwError(.expectedFieldSeparator)
-            }
         }
     }
     
@@ -140,24 +186,26 @@ class Areas {
         }
 
         while true {
-            var number: Int64 = 0
-            if scanner.scanInt64(&number) {
-                guard (result & number) == 0 else {
+            var bitNumber: Int64 = 0
+            if scanner.scanInt64(&bitNumber) {
+                let flags: Int64 = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
+                guard (result & flags) == 0 else {
                     try throwError(.duplicateValue)
                 }
-                result |= number
+                result |= flags
             } else if let word = scanner.scanWord()?.lowercased() {
                 guard let valuesByName = valuesByName else {
                     // List without associated enumeration names
                     try throwError(.expectedNumber)
                 }
-                guard let number = valuesByName[word] else {
+                guard let bitNumber = valuesByName[word] else {
                     try throwError(.invalidEnumerationValue)
                 }
-                guard (result & number) == 0 else {
+                let flags: Int64 = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
+                guard (result & flags) == 0 else {
                     try throwError(.duplicateValue)
                 }
-                result |= number
+                result |= flags
             } else {
                 break
             }
@@ -227,12 +275,11 @@ class Areas {
                 guard result[key] == nil else {
                     try throwError(.duplicateValue)
                 }
-                guard scanner.skipString("=") else {
-                    try throwError(.syntaxError)
-                }
                 var value: Int64 = 0
-                guard scanner.scanInt64(&value) else {
-                    try throwError(.expectedNumber)
+                if scanner.skipString("=") {
+                    guard scanner.scanInt64(&value) else {
+                        try throwError(.expectedNumber)
+                    }
                 }
                 result[key] = value
             } else if let word = scanner.scanWord()?.lowercased() {
@@ -246,12 +293,11 @@ class Areas {
                 guard result[key] == nil else {
                     try throwError(.duplicateValue)
                 }
-                guard scanner.skipString("=") else {
-                    try throwError(.syntaxError)
-                }
                 var value: Int64 = 0
-                guard scanner.scanInt64(&value) else {
-                    try throwError(.expectedNumber)
+                if scanner.skipString("=") {
+                    guard scanner.scanInt64(&value) else {
+                        try throwError(.expectedNumber)
+                    }
                 }
                 result[key] = value
             } else {
@@ -381,6 +427,6 @@ class Areas {
     }
     
     private func throwError(_ kind: ParseError.Kind) throws -> Never  {
-        throw ParseError(kind: kind, line: scanner.line, column: scanner.column)
+        throw ParseError(kind: kind, line: scanner.line, column: scanner.column, offendingLine: scanner.lineBeingParsed)
     }
 }

@@ -3,18 +3,23 @@
 
 import Foundation
 
+let definitionsFilename = "xgaf.dat"
+let areaFilename = "020.mox"
+
 let definitions: Definitions
 do {
-    definitions = try Definitions(filename: "xgaf.dat")
+    definitions = try Definitions(filename: definitionsFilename)
 } catch {
-    print("While parsing definitions: \(error)")
+    print("While parsing definitions:\n" +
+        "\(definitionsFilename):\(error)")
     exit(1)
 }
 
 let areas = Areas(definitions: definitions)
 do {
-    try areas.load(filename: "020.mox")
+    try areas.load(filename: areaFilename)
 } catch {
-    print("While loading areas: \(error)")
+    print("While loading areas:\n" +
+        "\(areaFilename):\(error)")
     exit(1)
 }

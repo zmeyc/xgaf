@@ -3,7 +3,7 @@
 
 import Foundation
 
-let wordCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/;:()[]")).inverted
+let wordCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/;:()[]=")).inverted
 
 extension Scanner {
     
@@ -28,7 +28,7 @@ extension Scanner {
                 skipString("\n")
             } else if skipString("/*") {
                 guard skipUpTo("*/") else {
-                    throw ParseError(kind: .unterminatedComment, line: line, column: column)
+                    throw ParseError(kind: .unterminatedComment, line: line, column: column, offendingLine: lineBeingParsed)
                 }
                 skipString("*/")
             } else {

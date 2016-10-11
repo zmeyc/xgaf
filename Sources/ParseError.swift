@@ -44,7 +44,7 @@ struct ParseError: Error, CustomStringConvertible {
             case .expectedDoubleQuote: return "expected double quote"
             case .unterminatedString: return "unterminated string"
             case .expectedEnumerationValue: return "expected enumeration value"
-            case .invalidEnumerationValue: return "expected enumeration value"
+            case .invalidEnumerationValue: return "invalid enumeration value"
             case .duplicateValue: return "duplicate value"
             }
         }
@@ -53,12 +53,14 @@ struct ParseError: Error, CustomStringConvertible {
     let kind: Kind
     let line: Int?
     let column: Int?
+    let offendingLine: String?
     
     var description: String {
-        guard let line = line, let column = column else {
+        guard let line = line, let column = column, let offendingLine = offendingLine else {
             return kind.description
         }
-        return "[\(line):\(column)] \(kind.description)"
+        return "\(line):\(column): \(kind.description). Offending line:\n" +
+            "\(offendingLine)"
     }
     
     var localizedDescription: String {
