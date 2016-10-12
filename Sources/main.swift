@@ -5,7 +5,7 @@ import Foundation
 
 let definitionsFilename = "xgaf.dat"
 let areaFilename = "020.mox"
-let areaName = URL(fileURLWithPath: areaFilename).deletingPathExtension()
+//let areaName = URL(fileURLWithPath: areaFilename).deletingPathExtension().relativePath
 
 print("Loading definitions")
 let definitions: Definitions
@@ -30,9 +30,9 @@ do {
 print("Saving simplified format")
 let generator = SimpleAreaFormatGenerator(areas: areas)
 do {
-    try generator.save(areaName: areaName.absoluteString)
+    try generator.save(originalFilename: areaFilename)
 } catch {
-    print("While saving area \(areaName.lastPathComponent): \(error.localizedDescription)")
+    print("While saving simplified version of \(areaFilename): \(error)")
     exit(1)
 }
 
