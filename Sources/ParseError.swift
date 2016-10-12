@@ -25,6 +25,7 @@ struct ParseError: Error, CustomStringConvertible {
         case invalidEnumerationValue
         case duplicateValue
         case unterminatedStructure
+        case unknownEntityType
         
         var description: String {
             switch self {
@@ -48,6 +49,7 @@ struct ParseError: Error, CustomStringConvertible {
             case .invalidEnumerationValue: return "invalid enumeration value"
             case .duplicateValue: return "duplicate value"
             case .unterminatedStructure: return "unterminated structure"
+            case .unknownEntityType: return "unknown entity type"
             }
         }
     }

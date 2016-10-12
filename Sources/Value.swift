@@ -12,4 +12,26 @@ enum Value {
     case line(String)
     case longText(String)
     case dice(Int64, Int64, Int64)
+    
+    var toSimplifiedFormat: String {
+        switch self {
+        case .number(let value): return "\(value)"
+        case .enumeration(let value): return "\(value)"
+        case .flags(let value): return "\(value)"
+        case .list(let values): return values.sorted().map { "\($0)" }.joined(separator: " ")
+        case .dictionary(let values):
+            let keys = values.keys.sorted()
+            return keys.map {
+                if let value = values[$0] {
+                    return "\($0)=\(value)"
+                } else {
+                    return "\($0)=0"
+                }
+            }.joined(separator: " ")
+        case .line(let value), .longText(let value):
+            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+        case let .dice(x, y, z):
+            return "\(x) \(y) \(z)"
+        }
+    }
 }

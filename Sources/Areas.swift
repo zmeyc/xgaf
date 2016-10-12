@@ -9,6 +9,10 @@ class Areas {
     var scanner: Scanner!
     let definitions: Definitions
     
+    var items = [Int64: Entity]()
+    var mobiles = [Int64: Entity]()
+    var rooms = [Int64: Entity]()
+    
     var fieldDefinitions: FieldDefinitions!
     var currentEntity: Entity!
     var currentFieldName = ""
@@ -33,7 +37,7 @@ class Areas {
             try scanner.skipComments()
         }
         
-        finalizeCurrentEntity()
+        try finalizeCurrentEntity()
         
         guard currentStructureName.isEmpty else {
             try throwError(.unterminatedStructure)
@@ -50,13 +54,13 @@ class Areas {
         currentFieldName = field.lowercased()
         switch currentFieldName {
         case "предмет":
-            finalizeCurrentEntity()
+            try finalizeCurrentEntity()
             fieldDefinitions = definitions.items
         case "монстр":
-            finalizeCurrentEntity()
+            try finalizeCurrentEntity()
             fieldDefinitions = definitions.mobiles
         case "комната":
-            finalizeCurrentEntity()
+            try finalizeCurrentEntity()
             fieldDefinitions = definitions.rooms
         default:
             break
@@ -445,8 +449,21 @@ class Areas {
         }
     }
 
-    private func finalizeCurrentEntity() {
+    private func finalizeCurrentEntity() throws {
         if let entity = currentEntity {
+            if let item = entity.values["предмет"],
+                case .number(let itemId) = item {
+                    items[itemId] = entity
+            } else if let mobile = entity.values["монстр"],
+                case .number(let mobileId) = mobile {
+                    mobiles[mobileId] = entity
+            } else if let room = entity.values["комната"],
+                case .number(let roomId) = room {
+                    rooms[roomId] = entity
+            } else {
+                try throwError(.unknownEntityType)
+            }
+            
             if areasLog {
                 print("---")
             }

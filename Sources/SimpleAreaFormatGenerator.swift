@@ -35,8 +35,33 @@ class SimpleAreaFormatGenerator {
         var out = ""
         out.reserveCapacity(256 * 1024)
         
-        //areas.
+        generate(entities: areas.items, primaryField: "предмет", appendTo: &out)
+        generate(entities: areas.mobiles, primaryField: "монстр", appendTo: &out)
+        generate(entities: areas.rooms, primaryField: "комната", appendTo: &out)
         
         return out
+    }
+    
+    private func generate(entities: [Int64: Entity], primaryField: String, appendTo out: inout String) {
+        
+        let sortedIds = entities.keys.sorted()
+        for id in sortedIds {
+            if id != sortedIds.first {
+                out += "\n"
+            }
+            
+            guard let entity = entities[id] else { continue }
+
+            out += "\(primaryField.uppercased()) \(id)\n"
+            
+            let sortedKeys = entity.values.keys.sorted()
+            for key in sortedKeys {
+                guard key != primaryField else { continue }
+                guard let value = entity.values[key] else { continue }
+                
+                out += "\(key.uppercased()) \(value.toSimplifiedFormat)\n"
+            }
+        }
+        
     }
 }
