@@ -6,6 +6,8 @@ import Foundation
 let definitionsFilename = "xgaf.dat"
 let areaFilename = "020.mox"
 
+print("Starting conversion")
+
 let definitions: Definitions
 do {
     definitions = try Definitions(filename: definitionsFilename)
@@ -23,3 +25,5 @@ do {
         "\(areaFilename):\(error)")
     exit(1)
 }
+
+print("Finished succesfully")

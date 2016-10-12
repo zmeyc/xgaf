@@ -3,6 +3,8 @@
 
 import Foundation
 
+let areasLog = false
+
 class Areas {
     var scanner: Scanner!
     let definitions: Definitions
@@ -62,7 +64,9 @@ class Areas {
         
         let requireFieldSeparator: Bool
         if try openStructure() {
-            print("--- Structure opened: \(currentStructureName)")
+            if areasLog {
+                print("--- Structure opened: \(currentStructureName)")
+            }
             requireFieldSeparator = false
         } else {
             try scanValue()
@@ -70,7 +74,9 @@ class Areas {
         }
 
         if try closeStructure() {
-            print("--- Structure closed")
+            if areasLog {
+                print("--- Structure closed")
+            }
         }
 
         if requireFieldSeparator {
@@ -148,7 +154,9 @@ class Areas {
             try throwError(.duplicateField)
         }
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): \(result)")
+        if areasLog {
+            print("\(currentFieldName): \(result)")
+        }
     }
     
     private func scanEnumeration() throws {
@@ -169,7 +177,9 @@ class Areas {
             try throwError(.duplicateField)
         }
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): .\(result)")
+        if areasLog {
+            print("\(currentFieldName): .\(result)")
+        }
     }
     
     private func scanFlags() throws {
@@ -213,7 +223,9 @@ class Areas {
 
         let value = Value.flags(result)
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): \(result)")
+        if areasLog {
+            print("\(currentFieldName): \(result)")
+        }
     }
 
     private func scanList() throws {
@@ -253,7 +265,9 @@ class Areas {
 
         let value = Value.list(result)
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): \(result)")
+        if areasLog {
+            print("\(currentFieldName): \(result)")
+        }
     }
 
     private func scanDictionary() throws {
@@ -307,7 +321,9 @@ class Areas {
         
         let value = Value.dictionary(result)
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): \(result)")
+        if areasLog {
+            print("\(currentFieldName): \(result)")
+        }
     }
 
     private func scanQuotedText() throws -> String {
@@ -348,7 +364,9 @@ class Areas {
             try throwError(.duplicateField)
         }
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): \(result)")
+        if areasLog {
+            print("\(currentFieldName): \(result)")
+        }
     }
     
     private func scanLongText() throws {
@@ -376,7 +394,9 @@ class Areas {
             try throwError(.duplicateField)
         }
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): \(result)")
+        if areasLog {
+            print("\(currentFieldName): \(result)")
+        }
     }
     
     private func scanDice() throws {
@@ -416,12 +436,16 @@ class Areas {
             try throwError(.duplicateField)
         }
         currentEntity.values[currentFieldName] = value
-        print("\(currentFieldName): \(v1)к\(v2)+\(v3)")
+        if areasLog {
+            print("\(currentFieldName): \(v1)к\(v2)+\(v3)")
+        }
     }
 
     private func finalizeCurrentEntity() {
         if let entity = currentEntity {
-            print("---")
+            if areasLog {
+                print("---")
+            }
         }
         currentEntity = Entity()
     }
