@@ -34,6 +34,10 @@ class Areas {
         }
         
         finalizeCurrentEntity()
+        
+        guard currentStructureName.isEmpty else {
+            try throwError(.unterminatedStructure)
+        }
     }
     
     private func scanNextEntity() throws {
