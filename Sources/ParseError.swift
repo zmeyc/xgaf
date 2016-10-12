@@ -51,16 +51,14 @@ struct ParseError: Error, CustomStringConvertible {
     }
     
     let kind: Kind
-    let line: Int?
-    let column: Int?
-    let offendingLine: String?
+    let scanner: Scanner?
     
     var description: String {
-        guard let line = line, let column = column, let offendingLine = offendingLine else {
+        guard let scanner = scanner else {
             return kind.description
         }
-        return "\(line):\(column): \(kind.description). Offending line:\n" +
-            "\(offendingLine)"
+        return "\(scanner.line):\(scanner.column): \(kind.description). Offending line:\n" +
+            "\(scanner.lineBeingParsed)"
     }
     
     var localizedDescription: String {
