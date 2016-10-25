@@ -23,9 +23,14 @@ extension Scanner {
                 
                 // If at "\n" already, do nothing
                 guard !skipString("\n") else { continue }
+                guard !skipString("\r\n") else { continue }
 
-                guard skipUpTo("\n") else { return }
-                skipString("\n")
+                guard skipUpToCharacters(from: CharacterSet.newlines) else {
+                    return
+                }
+                if !skipString("\n") {
+                    skipString("\r\n")
+                }
             } else if skipString("/*") {
                 guard skipUpTo("*/") else {
                     throw ParseError(kind: .unterminatedComment, scanner: self)
