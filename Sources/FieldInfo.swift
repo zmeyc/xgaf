@@ -6,7 +6,7 @@ import Foundation
 class FieldInfo {
     let name: String
     let type: FieldType
-    let flags: FieldFlags
+    var flags: FieldFlags
     
     init?(name: String, flags: String) {
         self.name = name.lowercased()

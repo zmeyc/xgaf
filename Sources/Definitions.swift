@@ -65,9 +65,16 @@ class Definitions {
 
             try scanner.skipComments()
             guard let flags = scanner.scanWord() else { try throwError(.flagsExpected) }
+
             guard let fieldInfo = FieldInfo(name: name, flags: flags) else {
                 try throwError(.invalidFieldFlags)
             }
+            if let structureName = structureName(fromFieldName: name) {
+                if fieldDefinitions.registerStructure(name: structureName) {
+                    fieldInfo.flags.insert(.structureStart)
+                }
+            }
+            
             guard fieldDefinitions.insert(fieldInfo: fieldInfo) else {
                 try throwError(.duplicateFieldDefinition)
             }

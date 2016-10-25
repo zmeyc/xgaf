@@ -4,6 +4,7 @@
 import Foundation
 
 class FieldDefinitions {
+    private var structureNames = Set<String>()
     private var fields = [String: FieldInfo]()
     private(set) public var requiredFieldNames = [String]()
 
@@ -18,5 +19,12 @@ class FieldDefinitions {
     
     func field(name: String) -> FieldInfo? {
         return fields[name]
+    }
+    
+    // Returns true if structure has not been registered before
+    func registerStructure(name: String) -> Bool {
+        guard !structureNames.contains(name) else { return false }
+        structureNames.insert(name)
+        return true
     }
 }
