@@ -12,6 +12,7 @@ struct ParseError: Error, CustomStringConvertible {
         case unsupportedSectionType
         case flagsExpected
         case invalidFieldFlags
+        case duplicateFieldDefinition
         case syntaxError
         case expectedFieldName
         case unsupportedEntityType
@@ -36,6 +37,7 @@ struct ParseError: Error, CustomStringConvertible {
             case .unsupportedSectionType: return "unsupported section type"
             case .flagsExpected: return "flags expected"
             case .invalidFieldFlags: return "invalid field flags"
+            case .duplicateFieldDefinition: return "duplicate field definition"
             case .syntaxError: return "syntax error"
             case .expectedFieldName: return "expected field name"
             case .unsupportedEntityType: return "unsupported entity type"

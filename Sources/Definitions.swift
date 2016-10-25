@@ -68,7 +68,9 @@ class Definitions {
             guard let fieldInfo = FieldInfo(name: name, flags: flags) else {
                 try throwError(.invalidFieldFlags)
             }
-            fieldDefinitions.insert(fieldInfo: fieldInfo)
+            guard fieldDefinitions.insert(fieldInfo: fieldInfo) else {
+                try throwError(.duplicateFieldDefinition)
+            }
          
             if definitionsLog {
                 print("name: \(name), flags: \(flags)")

@@ -158,10 +158,9 @@ class Areas {
             try throwError(.expectedNumber)
         }
         let value = Value.number(result)
-        if currentEntity.values[currentFieldName] != nil {
+        guard currentEntity.add(name: currentFieldName, value: value) else {
             try throwError(.duplicateField)
         }
-        currentEntity.values[currentFieldName] = value
         if areasLog {
             print("\(currentFieldName): \(result)")
         }
@@ -181,10 +180,9 @@ class Areas {
         }
         
         let value = Value.enumeration(number)
-        if currentEntity.values[currentFieldName] != nil {
+        guard currentEntity.add(name: currentFieldName, value: value) else {
             try throwError(.duplicateField)
         }
-        currentEntity.values[currentFieldName] = value
         if areasLog {
             print("\(currentFieldName): .\(result)")
         }
@@ -196,7 +194,7 @@ class Areas {
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
         var result: Int64
-        if let previousValue = currentEntity.values[currentFieldName],
+        if let previousValue = currentEntity.value(named: currentFieldName),
             case .flags(let previousResult) = previousValue {
                 result = previousResult
         } else {
@@ -230,7 +228,7 @@ class Areas {
         }
 
         let value = Value.flags(result)
-        currentEntity.values[currentFieldName] = value
+        currentEntity.replace(name: currentFieldName, value: value)
         if areasLog {
             print("\(currentFieldName): \(result)")
         }
@@ -242,7 +240,7 @@ class Areas {
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
         var result: Set<Int64>
-        if let previousValue = currentEntity.values[currentFieldName],
+        if let previousValue = currentEntity.value(named: currentFieldName),
             case .list(let previousResult) = previousValue {
             result = previousResult
         } else {
@@ -272,7 +270,7 @@ class Areas {
         }
 
         let value = Value.list(result)
-        currentEntity.values[currentFieldName] = value
+        currentEntity.replace(name: currentFieldName, value:  value)
         if areasLog {
             print("\(currentFieldName): \(result)")
         }
@@ -284,7 +282,7 @@ class Areas {
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
         var result: [Int64: Int64]
-        if let previousValue = currentEntity.values[currentFieldName],
+        if let previousValue = currentEntity.value(named: currentFieldName),
             case .dictionary(let previousResult) = previousValue {
             result = previousResult
         } else {
@@ -328,7 +326,7 @@ class Areas {
         }
         
         let value = Value.dictionary(result)
-        currentEntity.values[currentFieldName] = value
+        currentEntity.replace(name: currentFieldName, value: value)
         if areasLog {
             print("\(currentFieldName): \(result)")
         }
@@ -368,10 +366,10 @@ class Areas {
 
         let result = try scanQuotedText()
         let value = Value.line(result)
-        if currentEntity.values[currentFieldName] != nil {
+        if currentEntity.value(named: currentFieldName) != nil {
             try throwError(.duplicateField)
         }
-        currentEntity.values[currentFieldName] = value
+        currentEntity.replace(name: currentFieldName, value: value)
         if areasLog {
             print("\(currentFieldName): \(result)")
         }
@@ -398,10 +396,10 @@ class Areas {
             }
         }
         let value = Value.longText(result)
-        if currentEntity.values[currentFieldName] != nil {
+        if currentEntity.value(named: currentFieldName) != nil {
             try throwError(.duplicateField)
         }
-        currentEntity.values[currentFieldName] = value
+        currentEntity.replace(name: currentFieldName, value:  value)
         if areasLog {
             print("\(currentFieldName): \(result)")
         }
@@ -440,10 +438,10 @@ class Areas {
         }
         
 
-        if currentEntity.values[currentFieldName] != nil {
+        if currentEntity.value(named: currentFieldName) != nil {
             try throwError(.duplicateField)
         }
-        currentEntity.values[currentFieldName] = value
+        currentEntity.replace(name: currentFieldName, value:  value)
         if areasLog {
             print("\(currentFieldName): \(v1)к\(v2)+\(v3)")
         }
@@ -451,13 +449,13 @@ class Areas {
 
     private func finalizeCurrentEntity() throws {
         if let entity = currentEntity {
-            if let item = entity.values["предмет"],
+            if let item = entity.value(named: "предмет"),
                 case .number(let itemId) = item {
                     items[itemId] = entity
-            } else if let mobile = entity.values["монстр"],
+            } else if let mobile = entity.value(named: "монстр"),
                 case .number(let mobileId) = mobile {
                     mobiles[mobileId] = entity
-            } else if let room = entity.values["комната"],
+            } else if let room = entity.value(named: "комната"),
                 case .number(let roomId) = room {
                     rooms[roomId] = entity
             } else {

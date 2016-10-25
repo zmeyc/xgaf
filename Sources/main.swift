@@ -4,7 +4,7 @@
 import Foundation
 
 let definitionsFilename = "xgaf.dat"
-let areaFilename = "020.mox"
+let areaFilename = "025.mox"
 //let areaName = URL(fileURLWithPath: areaFilename).deletingPathExtension().relativePath
 
 print("Loading definitions")
@@ -24,6 +24,15 @@ do {
 } catch {
     print("While loading areas:\n" +
         "\(areaFilename):\(error)")
+    exit(1)
+}
+
+print("Postprocessing areas")
+do {
+    try Postprocess.run(areas: areas)
+} catch {
+    print("While postprocessing areas:\n" +
+        "\(areaFilename): \(error)")
     exit(1)
 }
 

@@ -54,14 +54,12 @@ class SimpleAreaFormatGenerator {
 
             out += "\(primaryField.uppercased()) \(id)\n"
             
-            let sortedKeys = entity.values.keys.sorted()
-            for key in sortedKeys {
+            for key in entity.orderedNames {
                 guard key != primaryField else { continue }
-                guard let value = entity.values[key] else { continue }
+                guard let value = entity.value(named: key) else { continue }
                 
                 out += "\(key.uppercased()) \(value.toSimplifiedFormat)\n"
             }
         }
-        
     }
 }
