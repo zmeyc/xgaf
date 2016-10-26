@@ -24,7 +24,7 @@ class Areas {
     
     init(definitions: Definitions) {
         self.definitions = definitions
-        self.morpher = Morpher(definitions: definitions)
+        self.morpher = Morpher(cases: definitions.cases)
     }
     
     func load(filename: String) throws {
