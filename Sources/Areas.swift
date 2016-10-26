@@ -133,6 +133,11 @@ class Areas {
             try throwError(.unknownFieldType)
         }
         
+        if field.flags.contains(.structureStart),
+                let name = structureName(fromFieldName: currentFieldName) {
+            currentEntity.startStructure(named: name)
+        }
+        
         try scanner.skipComments()
         try scanner.skipping(CharacterSet.whitespaces) {
             switch field.type {

@@ -36,7 +36,7 @@ class Postprocess {
             }
             
             for fieldName in definitions.requiredFieldNames {
-                guard entity.containsField(named: fieldName) else {
+                guard entity.hasRequiredField(named: fieldName) else {
                     throw PostprocessError(kind: .requiredFieldMissing(entityType: entityType, entityId: entityId.toSimplifiedFormat, fieldName: fieldName))
                 }
             }
