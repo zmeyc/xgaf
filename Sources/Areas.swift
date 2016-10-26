@@ -14,7 +14,9 @@ class Areas {
     var rooms = [Int64: Entity]()
     
     var fieldDefinitions: FieldDefinitions!
+    var morpher: Morpher!
     var currentEntity: Entity!
+    var currentFieldInfo: FieldInfo?
     var currentFieldName = "" // struct.name
     var currentFieldNameWithIndex = "" // struct.name[0]
     var currentStructureName = "" // struct
@@ -22,6 +24,7 @@ class Areas {
     
     init(definitions: Definitions) {
         self.definitions = definitions
+        self.morpher = Morpher(definitions: definitions)
     }
     
     func load(filename: String) throws {
@@ -29,6 +32,7 @@ class Areas {
 
         scanner = Scanner(string: contents)
         currentEntity = nil
+        currentFieldInfo = nil
         currentFieldName = ""
         currentFieldNameWithIndex = ""
         currentStructureName = ""
@@ -153,13 +157,14 @@ class Areas {
         if fieldDefinitions == nil {
             try throwError(.unsupportedEntityType)
         }
-        guard let field = fieldDefinitions.field(name: currentFieldName) else {
+        guard let fieldInfo = fieldDefinitions.field(name: currentFieldName) else {
             try throwError(.unknownFieldType)
         }
+        currentFieldInfo = fieldInfo
         
         if firstFieldInStructure {
             firstFieldInStructure = false
-            if !field.flags.contains(.structureStart) {
+            if !fieldInfo.flags.contains(.structureStart) {
                 try throwError(.structureCantStartFromThisField)
             }
         }
@@ -173,7 +178,7 @@ class Areas {
         
         try scanner.skipComments()
         try scanner.skipping(CharacterSet.whitespaces) {
-            switch field.type {
+            switch fieldInfo.type {
             case .number: try scanNumber()
             case .enumeration: try scanEnumeration()
             case .flags: try scanFlags()
@@ -402,7 +407,10 @@ class Areas {
     private func scanLine() throws {
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
 
-        let result = try scanQuotedText()
+        var result = try scanQuotedText()
+        if currentFieldInfo?.flags.contains(.automorph) ?? false {
+            result = morpher.convertToSimpleAreaFormat(text: result)
+        }
         let value = Value.line(result)
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {
             try throwError(.duplicateField)
@@ -432,6 +440,9 @@ class Areas {
                     throw error
                 }
             }
+        }
+        if currentFieldInfo?.flags.contains(.automorph) ?? false {
+            result = morpher.convertToSimpleAreaFormat(text: result)
         }
         let value = Value.longText(result)
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {

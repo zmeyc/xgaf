@@ -7,24 +7,21 @@ class Postprocess {
     static func run(areas: Areas) throws {
         let definitions = areas.definitions
         
-        // All required fields should be present
-        try checkRequiredFields("item",
-                                idFieldName: "предмет",
-                                definitions: definitions.items,
-                                entities: areas.items)
-        try checkRequiredFields("mobile",
-                                idFieldName: "монстр",
-                                definitions: definitions.mobiles,
-                                entities: areas.mobiles)
-        try checkRequiredFields("room",
-                                idFieldName: "комната",
-                                definitions: definitions.rooms,
-                                entities: areas.rooms)
-
-        // Automorph
+        try postprocess(entities: areas.items,
+                        entityType: "item",
+                        idFieldName: "предмет",
+                        definitions: definitions.items)
+        try postprocess(entities: areas.mobiles,
+                        entityType: "mobile",
+                        idFieldName: "монстр",
+                        definitions: definitions.mobiles)
+        try postprocess(entities: areas.rooms,
+                        entityType: "room",
+                        idFieldName: "комната",
+                        definitions: definitions.rooms)
     }
     
-    static func checkRequiredFields(_ entityType: String, idFieldName: String, definitions: FieldDefinitions, entities: [Int64: Entity]) throws {
+    static func postprocess(entities: [Int64: Entity], entityType: String, idFieldName: String, definitions: FieldDefinitions) throws {
         
         //let requiredFields = FieldDefinitions.fields.
         
@@ -35,12 +32,12 @@ class Postprocess {
                 fatalError("Inconsistent state")
             }
             
+            // All required fields should be present
             for fieldName in definitions.requiredFieldNames {
                 guard entity.hasRequiredField(named: fieldName) else {
                     throw PostprocessError(kind: .requiredFieldMissing(entityType: entityType, entityId: entityId.toSimplifiedFormat, fieldName: fieldName))
                 }
             }
-            
         }
         
     }

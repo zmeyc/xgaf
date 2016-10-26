@@ -7,6 +7,7 @@ class FieldDefinitions {
     private var structureNames = Set<String>()
     private var fields = [String: FieldInfo]()
     private(set) public var requiredFieldNames = [String]()
+    //private(set) public var automorphFieldNames = [String]()
 
     func insert(fieldInfo: FieldInfo) -> Bool {
         guard fields[fieldInfo.name] == nil else { return false }
@@ -14,6 +15,9 @@ class FieldDefinitions {
         if fieldInfo.flags.contains(.required) {
             requiredFieldNames.append(fieldInfo.name)
         }
+        //if fieldInfo.flags.contains(.automorph) {
+        //    automorphFieldNames.append(fieldInfo.name)
+        //}
         return true
     }
     
