@@ -5,31 +5,25 @@ import Foundation
 
 class Entity {
     private var lastAddedIndex = 0
+    
+    // Key is "structure name"."field name"[index]:
+    // struct.name[0]
+    // Index should be omitted for top level fields.
     private var values = [String: Value]()
-    private var structureIndexes = [String: Int]();
     private(set) var orderedNames = [String]()
     
-    func startStructure(named name: String) {
-        if let current = structureIndexes[name] {
-            structureIndexes[name] = current + 1
-        } else {
-            structureIndexes[name] = 0
-        }
-        //print("startStructure: named=\(name), index=\(structureIndexes[name]!)")
-    }
-    
+    var lastStructureIndex = [String: Int]()
+
+    // name is struct.field[index]
     func add(name: String, value: Value) -> Bool {
-        let name = appendCurrentIndex(toName: name)
-        
         guard values[name] == nil else { return false }
         values[name] = value
         orderedNames.append(name)
         return true
     }
     
+    // name is struct.field[index]
     func replace(name: String, value: Value) {
-        let name = appendCurrentIndex(toName: name)
-        
         guard values[name] == nil else {
             values[name] = value
             return
@@ -38,14 +32,15 @@ class Entity {
         orderedNames.append(name)
     }
     
+    // name is struct.field[index]
     func value(named name: String) -> Value? {
-        let name = appendCurrentIndex(toName: name)
         return values[name]
     }
     
+    // name is struct.field WITHOUT [index] suffix
     func hasRequiredField(named name: String) -> Bool {
         if let structureName = structureName(fromFieldName: name) {
-            guard let lastIndex = structureIndexes[structureName] else {
+            guard let lastIndex = lastStructureIndex[structureName] else {
                 // This is a structure field, but no structures were created
                 return true
             }
@@ -58,17 +53,5 @@ class Entity {
         }
         
         return values[name] != nil
-    }
-    
-    private func appendIndex(toName name: String, index: Int) -> String {
-        return "\(name)[\(index)]"
-    }
-    
-    private func appendCurrentIndex(toName name: String) -> String {
-        if let structureName = structureName(fromFieldName: name),
-                let index = structureIndexes[structureName] {
-            return appendIndex(toName: name, index: index)
-        }
-        return name
     }
 }

@@ -7,3 +7,7 @@ func structureName(fromFieldName name: String) -> String? {
     guard name.contains(".") else { return nil }
     return name.components(separatedBy: ".").first
 }
+
+func appendIndex(toName name: String, index: Int) -> String {
+    return "\(name)[\(index)]"
+}

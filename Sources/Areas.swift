@@ -15,8 +15,9 @@ class Areas {
     
     var fieldDefinitions: FieldDefinitions!
     var currentEntity: Entity!
-    var currentFieldName = ""
-    var currentStructureName = ""
+    var currentFieldName = "" // struct.name
+    var currentFieldNameWithIndex = "" // struct.name[0]
+    var currentStructureName = "" // struct
     
     init(definitions: Definitions) {
         self.definitions = definitions
@@ -28,6 +29,7 @@ class Areas {
         scanner = Scanner(string: contents)
         currentEntity = nil
         currentFieldName = ""
+        currentFieldNameWithIndex = ""
         currentStructureName = ""
         
         try scanner.skipComments()
@@ -52,18 +54,20 @@ class Areas {
         }
 
         currentFieldName = field.lowercased()
-        switch currentFieldName {
-        case "предмет":
-            try finalizeCurrentEntity()
-            fieldDefinitions = definitions.items
-        case "монстр":
-            try finalizeCurrentEntity()
-            fieldDefinitions = definitions.mobiles
-        case "комната":
-            try finalizeCurrentEntity()
-            fieldDefinitions = definitions.rooms
-        default:
-            break
+        if currentStructureName.isEmpty {
+            switch currentFieldName {
+            case "предмет":
+                try finalizeCurrentEntity()
+                fieldDefinitions = definitions.items
+            case "монстр":
+                try finalizeCurrentEntity()
+                fieldDefinitions = definitions.mobiles
+            case "комната":
+                try finalizeCurrentEntity()
+                fieldDefinitions = definitions.rooms
+            default:
+                break
+            }
         }
         
         if !currentStructureName.isEmpty {
@@ -110,6 +114,14 @@ class Areas {
         }
         
         currentStructureName = currentFieldName
+        
+        if let current = currentEntity.lastStructureIndex[currentStructureName] {
+            currentEntity.lastStructureIndex[currentStructureName] = current + 1
+        } else {
+            currentEntity.lastStructureIndex[currentStructureName] = 0
+        }
+        //print("openStructure: named=\(currentStructureName), index=\(currentEntity.lastStructureIndex[currentStructureName]!)")
+        
         return true
     }
 
@@ -124,6 +136,14 @@ class Areas {
         currentStructureName = ""
         return true
     }
+    
+    private func appendCurrentIndex(toName name: String) -> String {
+        if let structureName = structureName(fromFieldName: name),
+            let index = currentEntity.lastStructureIndex[structureName] {
+            return appendIndex(toName: name, index: index)
+        }
+        return name
+    }
 
     private func scanValue() throws {
         if fieldDefinitions == nil {
@@ -133,9 +153,16 @@ class Areas {
             try throwError(.unknownFieldType)
         }
         
-        if field.flags.contains(.structureStart),
-                let name = structureName(fromFieldName: currentFieldName) {
-            currentEntity.startStructure(named: name)
+        //if field.flags.contains(.structureStart),
+        //        let name = structureName(fromFieldName: currentFieldName) {
+        //    currentEntity.startStructure(named: name)
+        //}
+        
+        if let name = structureName(fromFieldName: currentFieldName),
+                let index = currentEntity.lastStructureIndex[name] {
+            currentFieldNameWithIndex = appendIndex(toName: currentFieldName, index: index)
+        } else {
+            currentFieldNameWithIndex = currentFieldName
         }
         
         try scanner.skipComments()
@@ -163,11 +190,11 @@ class Areas {
             try throwError(.expectedNumber)
         }
         let value = Value.number(result)
-        guard currentEntity.add(name: currentFieldName, value: value) else {
+        guard currentEntity.add(name: currentFieldNameWithIndex, value: value) else {
             try throwError(.duplicateField)
         }
         if areasLog {
-            print("\(currentFieldName): \(result)")
+            print("\(currentFieldNameWithIndex): \(result)")
         }
     }
     
@@ -185,11 +212,11 @@ class Areas {
         }
         
         let value = Value.enumeration(number)
-        guard currentEntity.add(name: currentFieldName, value: value) else {
+        guard currentEntity.add(name: currentFieldNameWithIndex, value: value) else {
             try throwError(.duplicateField)
         }
         if areasLog {
-            print("\(currentFieldName): .\(result)")
+            print("\(currentFieldNameWithIndex): .\(result)")
         }
     }
     
@@ -199,7 +226,7 @@ class Areas {
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
         var result: Int64
-        if let previousValue = currentEntity.value(named: currentFieldName),
+        if let previousValue = currentEntity.value(named: currentFieldNameWithIndex),
             case .flags(let previousResult) = previousValue {
                 result = previousResult
         } else {
@@ -233,9 +260,9 @@ class Areas {
         }
 
         let value = Value.flags(result)
-        currentEntity.replace(name: currentFieldName, value: value)
+        currentEntity.replace(name: currentFieldNameWithIndex, value: value)
         if areasLog {
-            print("\(currentFieldName): \(result)")
+            print("\(currentFieldNameWithIndex): \(result)")
         }
     }
 
@@ -245,7 +272,7 @@ class Areas {
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
         var result: Set<Int64>
-        if let previousValue = currentEntity.value(named: currentFieldName),
+        if let previousValue = currentEntity.value(named: currentFieldNameWithIndex),
             case .list(let previousResult) = previousValue {
             result = previousResult
         } else {
@@ -275,9 +302,9 @@ class Areas {
         }
 
         let value = Value.list(result)
-        currentEntity.replace(name: currentFieldName, value:  value)
+        currentEntity.replace(name: currentFieldNameWithIndex, value:  value)
         if areasLog {
-            print("\(currentFieldName): \(result)")
+            print("\(currentFieldNameWithIndex): \(result)")
         }
     }
 
@@ -287,7 +314,7 @@ class Areas {
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
         var result: [Int64: Int64]
-        if let previousValue = currentEntity.value(named: currentFieldName),
+        if let previousValue = currentEntity.value(named: currentFieldNameWithIndex),
             case .dictionary(let previousResult) = previousValue {
             result = previousResult
         } else {
@@ -331,9 +358,9 @@ class Areas {
         }
         
         let value = Value.dictionary(result)
-        currentEntity.replace(name: currentFieldName, value: value)
+        currentEntity.replace(name: currentFieldNameWithIndex, value: value)
         if areasLog {
-            print("\(currentFieldName): \(result)")
+            print("\(currentFieldNameWithIndex): \(result)")
         }
     }
 
@@ -371,12 +398,12 @@ class Areas {
 
         let result = try scanQuotedText()
         let value = Value.line(result)
-        if currentEntity.value(named: currentFieldName) != nil {
+        if currentEntity.value(named: currentFieldNameWithIndex) != nil {
             try throwError(.duplicateField)
         }
-        currentEntity.replace(name: currentFieldName, value: value)
+        currentEntity.replace(name: currentFieldNameWithIndex, value: value)
         if areasLog {
-            print("\(currentFieldName): \(result)")
+            print("\(currentFieldNameWithIndex): \(result)")
         }
     }
     
@@ -401,12 +428,12 @@ class Areas {
             }
         }
         let value = Value.longText(result)
-        if currentEntity.value(named: currentFieldName) != nil {
+        if currentEntity.value(named: currentFieldNameWithIndex) != nil {
             try throwError(.duplicateField)
         }
-        currentEntity.replace(name: currentFieldName, value:  value)
+        currentEntity.replace(name: currentFieldNameWithIndex, value:  value)
         if areasLog {
-            print("\(currentFieldName): \(result)")
+            print("\(currentFieldNameWithIndex): \(result)")
         }
     }
     
@@ -443,12 +470,12 @@ class Areas {
         }
         
 
-        if currentEntity.value(named: currentFieldName) != nil {
+        if currentEntity.value(named: currentFieldNameWithIndex) != nil {
             try throwError(.duplicateField)
         }
-        currentEntity.replace(name: currentFieldName, value:  value)
+        currentEntity.replace(name: currentFieldNameWithIndex, value:  value)
         if areasLog {
-            print("\(currentFieldName): \(v1)к\(v2)+\(v3)")
+            print("\(currentFieldNameWithIndex): \(v1)к\(v2)+\(v3)")
         }
     }
 
