@@ -58,6 +58,7 @@ class SimpleAreaFormatGenerator {
                 guard key != primaryField else { continue }
                 guard let value = entity.value(named: key) else { continue }
                 
+                let key = key.components(separatedBy: "[").first ?? key
                 out += "\(key.uppercased()) \(value.toSimplifiedFormat)\n"
             }
         }
