@@ -25,6 +25,7 @@ struct ParseError: Error, CustomStringConvertible {
         case expectedEnumerationValue
         case invalidEnumerationValue
         case duplicateValue
+        case structureCantStartFromThisField
         case unterminatedStructure
         case unknownEntityType
         
@@ -50,6 +51,7 @@ struct ParseError: Error, CustomStringConvertible {
             case .expectedEnumerationValue: return "expected enumeration value"
             case .invalidEnumerationValue: return "invalid enumeration value"
             case .duplicateValue: return "duplicate value"
+            case .structureCantStartFromThisField: return "structure can't start from this field"
             case .unterminatedStructure: return "unterminated structure"
             case .unknownEntityType: return "unknown entity type"
             }

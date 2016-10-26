@@ -18,6 +18,7 @@ class Areas {
     var currentFieldName = "" // struct.name
     var currentFieldNameWithIndex = "" // struct.name[0]
     var currentStructureName = "" // struct
+    var firstFieldInStructure = false
     
     init(definitions: Definitions) {
         self.definitions = definitions
@@ -31,6 +32,7 @@ class Areas {
         currentFieldName = ""
         currentFieldNameWithIndex = ""
         currentStructureName = ""
+        firstFieldInStructure = false
         
         try scanner.skipComments()
         while !scanner.isAtEnd {
@@ -114,6 +116,7 @@ class Areas {
         }
         
         currentStructureName = currentFieldName
+        firstFieldInStructure = true
         
         if let current = currentEntity.lastStructureIndex[currentStructureName] {
             currentEntity.lastStructureIndex[currentStructureName] = current + 1
@@ -134,6 +137,7 @@ class Areas {
         }
         
         currentStructureName = ""
+        firstFieldInStructure = false
         return true
     }
     
@@ -153,10 +157,12 @@ class Areas {
             try throwError(.unknownFieldType)
         }
         
-        //if field.flags.contains(.structureStart),
-        //        let name = structureName(fromFieldName: currentFieldName) {
-        //    currentEntity.startStructure(named: name)
-        //}
+        if firstFieldInStructure {
+            firstFieldInStructure = false
+            if !field.flags.contains(.structureStart) {
+                try throwError(.structureCantStartFromThisField)
+            }
+        }
         
         if let name = structureName(fromFieldName: currentFieldName),
                 let index = currentEntity.lastStructureIndex[name] {
