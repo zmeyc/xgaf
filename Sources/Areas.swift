@@ -417,7 +417,7 @@ class Areas {
         if currentFieldInfo?.flags.contains(.automorph) ?? false {
             result = morpher.convertToSimpleAreaFormat(text: result)
         }
-        let value = Value.line(result)
+        let value = Value.line([result])
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {
             try throwError(.duplicateField)
         }
@@ -430,13 +430,13 @@ class Areas {
     private func scanLongText() throws {
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
 
-        var result = try scanQuotedText()
+        var result = [try scanQuotedText()]
         while true {
             do {
                 assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
                 try scanner.skipping(CharacterSet.whitespacesAndNewlines) {
                     let nextLine = try scanQuotedText()
-                    result += nextLine
+                    result.append(nextLine)
                 }
             } catch let error as ParseError {
                 if case .expectedDoubleQuote = error.kind {
@@ -448,7 +448,7 @@ class Areas {
             }
         }
         if currentFieldInfo?.flags.contains(.automorph) ?? false {
-            result = morpher.convertToSimpleAreaFormat(text: result)
+            result = result.map { morpher.convertToSimpleAreaFormat(text: $0) }
         }
         let value = Value.longText(result)
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {

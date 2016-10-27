@@ -9,8 +9,8 @@ enum Value {
     case flags(Int64)
     case list(Set<Int64>)
     case dictionary([Int64: Int64])
-    case line(String)
-    case longText(String)
+    case line([String])
+    case longText([String])
     case dice(Int64, Int64, Int64)
     
     var toSimplifiedFormat: String {
@@ -28,8 +28,10 @@ enum Value {
                     return "\($0)=0"
                 }
             }.joined(separator: " ")
-        case .line(let value), .longText(let value):
-            return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+        case .line(let values), .longText(let values):
+            return values.map { value in
+                return "\"\(value.replacingOccurrences(of: "\"", with: "\"\""))\""
+            }.joined(separator: "\n")
         case let .dice(x, y, z):
             return "\(x) \(y) \(z)"
         }
