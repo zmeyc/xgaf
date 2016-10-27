@@ -329,12 +329,12 @@ class Areas {
         
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
-        var result: [Int64: Int64]
+        var result: [Int64: Int64?]
         if let previousValue = currentEntity.value(named: currentFieldNameWithIndex),
             case .dictionary(let previousResult) = previousValue {
             result = previousResult
         } else {
-            result = [Int64: Int64]()
+            result = [Int64: Int64?]()
         }
         
         while true {
@@ -348,8 +348,10 @@ class Areas {
                     guard scanner.scanInt64(&value) else {
                         try throwError(.expectedNumber)
                     }
+                    result[key] = value
+                } else {
+                    result[key] = nil as Int64?
                 }
-                result[key] = value
             } else if let word = scanner.scanWord()?.lowercased() {
                 guard let valuesByName = valuesByName else {
                     // List without associated enumeration names
@@ -366,8 +368,10 @@ class Areas {
                     guard scanner.scanInt64(&value) else {
                         try throwError(.expectedNumber)
                     }
+                    result[key] = value
+                } else {
+                    result[key] = nil as Int64?
                 }
-                result[key] = value
             } else {
                 break
             }

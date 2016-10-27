@@ -8,7 +8,7 @@ enum Value {
     case enumeration(Int64)
     case flags(Int64)
     case list(Set<Int64>)
-    case dictionary([Int64: Int64])
+    case dictionary([Int64: Int64?])
     case line([String])
     case longText([String])
     case dice(Int64, Int64, Int64)
@@ -22,10 +22,10 @@ enum Value {
         case .dictionary(let values):
             let keys = values.keys.sorted()
             return keys.map {
-                if let value = values[$0] {
+                if let optionalValue = values[$0], let value = optionalValue {
                     return "\($0)=\(value)"
                 } else {
-                    return "\($0)=0"
+                    return "\($0)"
                 }
             }.joined(separator: " ")
         case .line(let values), .longText(let values):
