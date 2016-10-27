@@ -6,6 +6,12 @@ import Foundation
 let areasLog = false
 
 class Areas {
+    enum StructureType {
+        case none
+        case extended
+        case base
+    }
+    
     var scanner: Scanner!
     let definitions: Definitions
     
@@ -19,6 +25,7 @@ class Areas {
     var currentFieldInfo: FieldInfo?
     var currentFieldName = "" // struct.name
     var currentFieldNameWithIndex = "" // struct.name[0]
+    var currentStructureType: StructureType = .none
     var currentStructureName = "" // struct
     var firstFieldInStructure = false
     
@@ -40,6 +47,7 @@ class Areas {
         currentFieldInfo = nil
         currentFieldName = ""
         currentFieldNameWithIndex = ""
+        currentStructureType = .none
         currentStructureName = ""
         firstFieldInStructure = false
         
@@ -52,7 +60,7 @@ class Areas {
         
         try finalizeCurrentEntity()
         
-        guard currentStructureName.isEmpty else {
+        guard currentStructureType == .none else {
             try throwError(.unterminatedStructure)
         }
     }
@@ -60,12 +68,22 @@ class Areas {
     private func scanNextEntity() throws {
         try scanner.skipComments()
         
-        guard let field = scanner.scanWord() else {
+        guard let word = scanner.scanWord() else {
             try throwError(.expectedFieldName)
+        }
+        let (baseStructureName, field) = structureAndFieldName(word)
+        
+        if !baseStructureName.isEmpty {
+            // Base format style structure name encountered: struct.field
+            currentStructureType = .base
+            currentStructureName = baseStructureName.lowercased()
+            if areasLog {
+                print("--- Base structure opened: \(currentStructureName)")
+            }
         }
 
         currentFieldName = field.lowercased()
-        if currentStructureName.isEmpty {
+        if currentStructureType == .none {
             switch currentFieldName {
             case "предмет":
                 try finalizeCurrentEntity()
@@ -81,14 +99,14 @@ class Areas {
             }
         }
         
-        if !currentStructureName.isEmpty {
+        if currentStructureType != .none {
             currentFieldName = "\(currentStructureName).\(currentFieldName)"
         }
         
         let requireFieldSeparator: Bool
-        if try openStructure() {
+        if try openExtendedStructure() {
             if areasLog {
-                print("--- Structure opened: \(currentStructureName)")
+                print("--- Extended structure opened: \(currentStructureName)")
             }
             requireFieldSeparator = false
         } else {
@@ -96,9 +114,15 @@ class Areas {
             requireFieldSeparator = true
         }
 
-        if try closeStructure() {
+        if currentStructureType == .base {
+            currentStructureType = .none
+            currentStructureName = ""
             if areasLog {
-                print("--- Structure closed")
+                print("--- Base structure closed")
+            }
+        } else if try closeExtendedStructure() {
+            if areasLog {
+                print("--- Extended structure closed")
             }
         }
 
@@ -116,8 +140,19 @@ class Areas {
         }
     }
     
-    private func openStructure() throws -> Bool {
-        guard currentStructureName.isEmpty else { return false }
+    private func assignIndexToNewStructure(named name: String) {
+        if let current = currentEntity.lastStructureIndex[name] {
+            currentEntity.lastStructureIndex[name] = current + 1
+        } else {
+            currentEntity.lastStructureIndex[name] = 0
+        }
+        if areasLog {
+            print("assignIndexToNewStructure: named=\(name), index=\(currentEntity.lastStructureIndex[name]!)")
+        }
+    }
+    
+    private func openExtendedStructure() throws -> Bool {
+        guard currentStructureType == .none else { return false }
         
         try scanner.skipComments()
         guard scanner.skipString("(") else {
@@ -127,24 +162,20 @@ class Areas {
         currentStructureName = currentFieldName
         firstFieldInStructure = true
         
-        if let current = currentEntity.lastStructureIndex[currentStructureName] {
-            currentEntity.lastStructureIndex[currentStructureName] = current + 1
-        } else {
-            currentEntity.lastStructureIndex[currentStructureName] = 0
-        }
-        //print("openStructure: named=\(currentStructureName), index=\(currentEntity.lastStructureIndex[currentStructureName]!)")
+        assignIndexToNewStructure(named: currentStructureName)
         
         return true
     }
 
-    private func closeStructure() throws -> Bool {
-        guard !currentStructureName.isEmpty else { return false }
+    private func closeExtendedStructure() throws -> Bool {
+        guard currentStructureType == .extended else { return false }
         
         try scanner.skipComments()
         guard scanner.skipString(")") else {
             return false
         }
         
+        currentStructureType = .none
         currentStructureName = ""
         firstFieldInStructure = false
         return true
@@ -167,10 +198,23 @@ class Areas {
         }
         currentFieldInfo = fieldInfo
         
-        if firstFieldInStructure {
-            firstFieldInStructure = false
-            if !fieldInfo.flags.contains(.structureStart) {
-                try throwError(.structureCantStartFromThisField)
+        switch currentStructureType {
+        case .none:
+            break
+        case .base:
+            // For base structures, assign a new index every time
+            // a structure start field is encountered.
+            if fieldInfo.flags.contains(.structureStart) {
+                assignIndexToNewStructure(named: currentStructureName)
+            }
+        case .extended:
+            // For extended structures, new index was assigned when
+            // the structure was opened.
+            if firstFieldInStructure {
+                firstFieldInStructure = false
+                if !fieldInfo.flags.contains(.structureStart) {
+                    try throwError(.structureCantStartFromThisField)
+                }
             }
         }
         
