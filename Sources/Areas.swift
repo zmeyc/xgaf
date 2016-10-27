@@ -217,22 +217,26 @@ class Areas {
     private func scanEnumeration() throws {
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
 
-        guard let word = scanner.scanWord() else {
+        let value: Value
+        var number: Int64 = 0
+        if scanner.scanInt64(&number) {
+            value = Value.enumeration(number)
+        } else if let word = scanner.scanWord() {
+            let result = word.lowercased()
+            guard let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName],
+                    let number = valuesByName[result] else {
+                try throwError(.invalidEnumerationValue)
+            }
+            value = Value.enumeration(number)
+        } else {
             try throwError(.expectedEnumerationValue)
         }
-        let result = word.lowercased()
         
-        guard let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName],
-            let number = valuesByName[result] else {
-                try throwError(.invalidEnumerationValue)
-        }
-        
-        let value = Value.enumeration(number)
         guard currentEntity.add(name: currentFieldNameWithIndex, value: value) else {
             try throwError(.duplicateField)
         }
         if areasLog {
-            print("\(currentFieldNameWithIndex): .\(result)")
+            print("\(currentFieldNameWithIndex): .\(number)")
         }
     }
     
@@ -250,9 +254,9 @@ class Areas {
         }
 
         while true {
-            var bitNumber: Int64 = 0
-            if scanner.scanInt64(&bitNumber) {
-                let flags: Int64 = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
+            var flags: Int64 = 0
+            if scanner.scanInt64(&flags) {
+                //let flags: Int64 = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
                 guard (result & flags) == 0 else {
                     try throwError(.duplicateValue)
                 }
@@ -265,7 +269,7 @@ class Areas {
                 guard let bitNumber = valuesByName[word] else {
                     try throwError(.invalidEnumerationValue)
                 }
-                let flags: Int64 = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
+                flags = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
                 guard (result & flags) == 0 else {
                     try throwError(.duplicateValue)
                 }
