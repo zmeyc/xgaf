@@ -159,6 +159,7 @@ class Areas {
             return false // Not a structure
         }
         
+        currentStructureType = .extended
         currentStructureName = currentFieldName
         firstFieldInStructure = true
         
