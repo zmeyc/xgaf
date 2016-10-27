@@ -385,25 +385,26 @@ class Areas {
         guard scanner.skipString("\"") else {
             try throwError(.expectedDoubleQuote)
         }
-        while true {
-            guard let text = scanner.scanUpTo("\"") else {
-                try throwError(.unterminatedString)
-            }
-            result += text
-            
-            scanner.skipString("\"")
-            
-            var shouldBreak = false
-            try scanner.skipping(nil) {
+        try scanner.skipping(nil) {
+            while true {
+                guard !scanner.skipString("\"") else {
+                    break
+                }
+                guard let text = scanner.scanUpTo("\"") else {
+                    try throwError(.unterminatedString)
+                }
+                result += text
+                scanner.skipString("\"")
+                
+                // If a quote is immediately followed by another quote,
+                // this is an escaped quote
                 if scanner.skipString("\"") {
                     // Escaped "
                     result += "\""
                 } else {
-                    shouldBreak = true
+                    // End of string
+                    break
                 }
-            }
-            if shouldBreak {
-                break
             }
         }
         return result
