@@ -6,12 +6,10 @@ import Foundation
 struct SaveError: Error, CustomStringConvertible {
     enum Kind: CustomStringConvertible {
         case ioError(error: Error)
-        case invalidExtension
         
         var description: String {
             switch self {
             case .ioError(let error): return error.localizedDescription
-            case .invalidExtension: return "invalid source file extension, unable to deduce output filename"
             }
         }
     }

@@ -28,7 +28,12 @@ class Areas {
     }
     
     func load(filename: String) throws {
-        let contents = try String(contentsOfFile: filename, encoding: .utf8)
+        let contents: String
+        do {
+            contents = try String(contentsOfFile: filename, encoding: .utf8)
+        } catch {
+            throw ParseError(kind: .unableToLoadFile(error: error), scanner: nil)
+        }
 
         scanner = Scanner(string: contents)
         currentEntity = nil

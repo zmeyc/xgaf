@@ -10,22 +10,11 @@ class SimpleAreaFormatGenerator {
         self.areas = areas
     }
     
-    func save(originalFilename: String) throws {
-        let url = URL(fileURLWithPath: originalFilename)
-        let fileExtension: String
-        switch url.pathExtension.lowercased() {
-            case "wlx": fileExtension = "wld"
-            case "mox": fileExtension = "mob"
-            case "obx": fileExtension = "obj"
-        default: throw SaveError(kind: .invalidExtension)
-        }
-        
-        let outFilename = "\(url.deletingPathExtension().relativeString).\(fileExtension)"
-        
+    func save(toFileNamed filename: String) throws {
         let out = generateOutput()
 
         do {
-            try out.write(toFile: "\(outFilename)", atomically: true, encoding: .utf8)
+            try out.write(toFile: filename, atomically: true, encoding: .utf8)
         } catch {
             throw SaveError(kind: .ioError(error: error))
         }

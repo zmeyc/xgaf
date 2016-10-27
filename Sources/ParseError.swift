@@ -5,6 +5,7 @@ import Foundation
 
 struct ParseError: Error, CustomStringConvertible {
     enum Kind: CustomStringConvertible {
+        case unableToLoadFile(error: Error)
         case unterminatedComment
         case expectedSectionStart
         case expectedSectionName
@@ -31,6 +32,7 @@ struct ParseError: Error, CustomStringConvertible {
         
         var description: String {
             switch self {
+            case .unableToLoadFile(let error): return "unable to load file: \(error.localizedDescription)"
             case .unterminatedComment: return "unterminated comment found"
             case .expectedSectionStart: return "expected '['"
             case .expectedSectionName: return "expected section name terminated with ']'"
