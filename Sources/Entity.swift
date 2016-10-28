@@ -13,6 +13,7 @@ class Entity {
     private(set) var orderedNames = [String]()
     
     var lastStructureIndex = [String: Int]()
+    var startLine = 0
 
     // name is struct.field[index]
     func add(name: String, value: Value) -> Bool {

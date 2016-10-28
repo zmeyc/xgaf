@@ -13,6 +13,7 @@ class Areas {
     }
     
     var scanner: Scanner!
+    var lineUtf16Offsets = [Int]()
     let definitions: Definitions
     
     var items = [Int64: Entity]()
@@ -51,6 +52,8 @@ class Areas {
         currentStructureName = ""
         firstFieldInStructure = false
         
+        lineUtf16Offsets = findLineUtf16Offsets(text: contents)
+        
         try scanner.skipComments()
         while !scanner.isAtEnd {
             try scanNextEntity()
@@ -63,6 +66,20 @@ class Areas {
         guard currentStructureType == .none else {
             try throwError(.unterminatedStructure)
         }
+    }
+    
+    func findLineUtf16Offsets(text: String) -> [Int] {
+        var offsets = [0]
+        
+        var at = 0
+        for cu in text.utf16 {
+            if cu == 10 { // \n
+                offsets.append(at + 1)
+            }
+            at += 1
+        }
+        
+        return offsets
     }
     
     private func scanNextEntity() throws {
@@ -576,6 +593,12 @@ class Areas {
             }
         }
         currentEntity = Entity()
+        currentEntity.startLine = lineAtUtf16Offset(scanner.scanLocation)
+        //print("\(scanner.scanLocation): \(currentEntity.startLine)")
+    }
+    
+    func lineAtUtf16Offset(_ offset: Int) -> Int {
+        return lineUtf16Offsets.binarySearch { $0 < offset } /* - 1 */
     }
     
     private func throwError(_ kind: ParseError.Kind) throws -> Never  {

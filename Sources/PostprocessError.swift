@@ -5,12 +5,12 @@ import Foundation
 
 struct PostprocessError: Error, CustomStringConvertible {
     enum Kind: CustomStringConvertible {
-        case requiredFieldMissing(entityType: String, entityId: String, fieldName: String)
+        case requiredFieldMissing(entity: Entity, entityType: String, entityId: String, fieldName: String)
         
         var description: String {
             switch self {
-            case let .requiredFieldMissing(entityType, entityId, fieldName):
-                return "\(entityType) \(entityId): required field '\(fieldName)' is missing"
+            case let .requiredFieldMissing(entity, entityType, entityId, fieldName):
+                return "\(entity.startLine):1: \(entityType) \(entityId): required field '\(fieldName)' is missing"
             }
         }
     }

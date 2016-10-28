@@ -67,7 +67,7 @@ struct ParseError: Error, CustomStringConvertible {
         guard let scanner = scanner else {
             return kind.description
         }
-        return "\(scanner.line):\(scanner.column): \(kind.description). Offending line:\n" +
+        return "\(scanner.line()):\(scanner.column()): \(kind.description). Offending line:\n" +
             "\(scanner.lineBeingParsed)"
     }
     

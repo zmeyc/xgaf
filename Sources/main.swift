@@ -78,7 +78,7 @@ do {
     try Postprocess.run(areas: areas)
 } catch {
     print("While postprocessing areas:\n" +
-        "\(areaFilename): \(error)")
+        "\(areaFilename):\(error)")
     exit(1)
 }
 
