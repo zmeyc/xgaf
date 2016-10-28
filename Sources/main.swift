@@ -3,7 +3,7 @@
 
 import Foundation
 
-let silent = false
+let silent = true
 let brief = true
 var definitionsFilename: String?
 var areaFilename: String
