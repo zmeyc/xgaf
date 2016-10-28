@@ -440,24 +440,24 @@ class Areas {
         }
         try scanner.skipping(nil) {
             while true {
-                guard !scanner.skipString("\"") else {
-                    break
+                if scanner.skipString("\"") {
+                    // End of string or escaped quote?
+                    if let cu = scanner.peekUtf16CodeUnit(), cu == 34 { // "
+                        // If a quote is immediately followed by another quote,
+                        // this is an escaped quote
+                        scanner.skipString("\"")
+                        result += "\""
+                        continue
+                    } else {
+                        // End of string
+                        break
+                    }
                 }
+                
                 guard let text = scanner.scanUpTo("\"") else {
                     try throwError(.unterminatedString)
                 }
                 result += text
-                scanner.skipString("\"")
-                
-                // If a quote is immediately followed by another quote,
-                // this is an escaped quote
-                if scanner.skipString("\"") {
-                    // Escaped "
-                    result += "\""
-                } else {
-                    // End of string
-                    break
-                }
             }
         }
         return result
