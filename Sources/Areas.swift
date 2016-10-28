@@ -490,6 +490,7 @@ class Areas {
                 try scanner.skipping(CharacterSet.whitespacesAndNewlines) {
                     let nextLine = try scanQuotedText()
                     result.append(nextLine)
+                    try scanner.skipComments()
                 }
             } catch let error as ParseError {
                 if case .expectedDoubleQuote = error.kind {
