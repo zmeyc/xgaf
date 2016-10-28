@@ -22,15 +22,20 @@ extension Scanner {
                 defer { charactersToBeSkipped = previousCharactersToBeSkipped }
                 
                 // If at "\n" already, do nothing
-                guard !skipString("\n") else { continue }
-                guard !skipString("\r\n") else { continue }
+                //guard !skipString("\n") else { continue }
+                //guard !skipString("\r\n") else { continue }
+                guard let cu = peekUtf16CodeUnit(),
+                    cu != 10 && cu != 13 else { continue }
 
                 guard skipUpToCharacters(from: CharacterSet.newlines) else {
+                    // No more newlines, skip until the end of text
+                    scanLocation = string.utf16.count
                     return
                 }
-                if !skipString("\n") {
-                    skipString("\r\n")
-                }
+                // No: parser will expect field separator
+                //if !skipString("\n") {
+                //    skipString("\r\n")
+                //}
             } else if skipString("/*") {
                 guard skipUpTo("*/") else {
                     throw ParseError(kind: .unterminatedComment, scanner: self)
