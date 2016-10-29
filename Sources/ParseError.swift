@@ -32,7 +32,12 @@ struct ParseError: Error, CustomStringConvertible {
         
         var description: String {
             switch self {
-            case .unableToLoadFile(let error): return "unable to load file: \(error.localizedDescription)"
+            case .unableToLoadFile(let error):
+                #if CYGWIN
+                return "unable to load file: \(error)"
+                #else
+                return "unable to load file: \(error.localizedDescription)"
+                #endif
             case .unterminatedComment: return "unterminated comment found"
             case .expectedSectionStart: return "expected '['"
             case .expectedSectionName: return "expected section name terminated with ']'"

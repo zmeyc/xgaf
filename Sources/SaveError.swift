@@ -9,7 +9,12 @@ struct SaveError: Error, CustomStringConvertible {
         
         var description: String {
             switch self {
-            case .ioError(let error): return error.localizedDescription
+            case .ioError(let error):
+                #if CYGWIN
+                return "\(error)"
+                #else
+                return error.localizedDescription
+                #endif
             }
         }
     }

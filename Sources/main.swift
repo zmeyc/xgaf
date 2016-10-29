@@ -9,15 +9,17 @@ var definitionsFilename: String?
 var areaFilename: String
 var destinationFilename: String?
 
-switch CommandLine.arguments.count {
+let arguments = CommandLine.arguments
+
+switch arguments.count {
 case 4:
-    definitionsFilename = CommandLine.arguments[3]
+    definitionsFilename = arguments[3]
     fallthrough
 case 3:
-    destinationFilename = CommandLine.arguments[2]
+    destinationFilename = arguments[2]
     fallthrough
 case 2:
-    areaFilename = CommandLine.arguments[1]
+    areaFilename = arguments[1]
 default:
     print("Usage:\n" +
         "xgaf file.wlx [file.wld] [xgaf.dat]")
@@ -25,16 +27,28 @@ default:
 }
 
 if definitionsFilename == nil {
-    definitionsFilename = URL(fileURLWithPath: CommandLine.arguments[0])
-        .deletingLastPathComponent()
+    #if CYGWIN
+    definitionsFilename = try URL(fileURLWithPath: arguments[0])
+	.deletingLastPathComponent()
         .appendingPathComponent("xgaf.dat", isDirectory: false)
         .path
+    #else
+    definitionsFilename = URL(fileURLWithPath: arguments[0])
+	.deletingLastPathComponent()
+        .appendingPathComponent("xgaf.dat", isDirectory: false)
+        .path
+    #endif
 }
 
 if destinationFilename == nil {
     let url = URL(fileURLWithPath: areaFilename)
     var destinationExtension: String
-    switch url.pathExtension.lowercased() {
+    #if CYGWIN
+    let fileExtension = url.pathExtension?.lowercased() ?? ""
+    #else
+    let fileExtension = url.pathExtension.lowercased()
+    #endif
+    switch fileExtension {
     case "wlx": destinationExtension = "wld"
     case "mox": destinationExtension = "mob"
     case "obx": destinationExtension = "obj"
@@ -42,9 +56,15 @@ if destinationFilename == nil {
         print("invalid source file extension, unable to deduce output filename")
         exit(1)
     }
+    #if CYGWIN
+    destinationFilename = try url.deletingPathExtension()
+        .appendingPathExtension(destinationExtension)
+        .path
+    #else
     destinationFilename = url.deletingPathExtension()
         .appendingPathExtension(destinationExtension)
         .path
+    #endif
 }
 
 if !silent && !brief {
