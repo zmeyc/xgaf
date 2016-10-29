@@ -3,11 +3,20 @@
 
 import Foundation
 
+// For setlocale()
+#if os(OSX)
+    import Darwin
+#elseif os(Linux) || os(Windows)
+    import Glibc
+#endif
+
 let silent = true
 let brief = true
 var definitionsFilename: String?
 var areaFilename: String
 var destinationFilename: String?
+
+setlocale(LC_ALL, "")
 
 let arguments = CommandLine.arguments
 
