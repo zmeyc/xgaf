@@ -84,7 +84,7 @@ do {
     definitions = try Definitions(filename: definitionsFilename!)
 } catch {
     print("While parsing definitions:\n" +
-        "\(definitionsFilename!): \(error)")
+        "\(definitionsFilename!):\(error)")
     exit(1)
 }
 
