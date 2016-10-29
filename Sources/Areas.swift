@@ -263,8 +263,7 @@ class Areas {
     private func scanNumber() throws {
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
 
-        var result: Int64 = 0
-        guard scanner.scanInt64(&result) else {
+        guard let result = scanner.scanInt64() else {
             try throwError(.expectedNumber)
         }
         let value = Value.number(result)
@@ -280,9 +279,11 @@ class Areas {
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
 
         let value: Value
-        var number: Int64 = 0
-        if scanner.scanInt64(&number) {
+        if let number = scanner.scanInt64() {
             value = Value.enumeration(number)
+            if areasLog {
+                print("\(currentFieldNameWithIndex): .\(number)")
+            }
         } else if let word = scanner.scanWord() {
             let result = word.lowercased()
             guard let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName],
@@ -290,15 +291,15 @@ class Areas {
                 try throwError(.invalidEnumerationValue)
             }
             value = Value.enumeration(number)
+            if areasLog {
+                print("\(currentFieldNameWithIndex): .\(number)")
+            }
         } else {
             try throwError(.expectedEnumerationValue)
         }
         
         guard currentEntity.add(name: currentFieldNameWithIndex, value: value) else {
             try throwError(.duplicateField)
-        }
-        if areasLog {
-            print("\(currentFieldNameWithIndex): .\(number)")
         }
     }
     
@@ -316,8 +317,7 @@ class Areas {
         }
 
         while true {
-            var flags: Int64 = 0
-            if scanner.scanInt64(&flags) {
+            if let flags = scanner.scanInt64() {
                 //let flags: Int64 = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
                 guard (result & flags) == 0 else {
                     try throwError(.duplicateValue)
@@ -331,7 +331,7 @@ class Areas {
                 guard let bitNumber = valuesByName[word] else {
                     try throwError(.invalidEnumerationValue)
                 }
-                flags = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
+                let flags = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
                 guard (result & flags) == 0 else {
                     try throwError(.duplicateValue)
                 }
@@ -362,8 +362,7 @@ class Areas {
         }
         
         while true {
-            var number: Int64 = 0
-            if scanner.scanInt64(&number) {
+            if let number = scanner.scanInt64() {
                 guard result.insert(number).inserted else {
                     try throwError(.duplicateValue)
                 }
@@ -404,14 +403,12 @@ class Areas {
         }
         
         while true {
-            var key: Int64 = 0
-            if scanner.scanInt64(&key) {
+            if let key = scanner.scanInt64() {
                 guard result[key] == nil else {
                     try throwError(.duplicateValue)
                 }
-                var value: Int64 = 0
                 if scanner.skipString("=") {
-                    guard scanner.scanInt64(&value) else {
+                    guard let value = scanner.scanInt64() else {
                         try throwError(.expectedNumber)
                     }
                     result[key] = value
@@ -429,9 +426,8 @@ class Areas {
                 guard result[key] == nil else {
                     try throwError(.duplicateValue)
                 }
-                var value: Int64 = 0
                 if scanner.skipString("=") {
-                    guard scanner.scanInt64(&value) else {
+                    guard let value = scanner.scanInt64() else {
                         try throwError(.expectedNumber)
                     }
                     result[key] = value
@@ -534,43 +530,42 @@ class Areas {
     private func scanDice() throws {
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
         
-        var v1: Int64 = 0
-        guard scanner.scanInt64(&v1) else {
+        guard let v1 = scanner.scanInt64() else {
             try throwError(.expectedNumber)
         }
         
         let hasK = scanner.skipString("К") || scanner.skipString("к")
 
-        var v2: Int64 = 0
-        let hasV2 = scanner.scanInt64(&v2)
+        let v2OrNil = scanner.scanInt64()
         
         let hasPlus = scanner.skipString("+")
 
-        var v3: Int64 = 0
-        let hasV3 = scanner.scanInt64(&v3)
+        let v3OrNil = scanner.scanInt64()
         
-        if hasK && !hasV2 {
+        if hasK && v2OrNil == nil {
             try throwError(.syntaxError)
         }
-        if hasPlus && (!hasV2 || !hasV3) {
+        if hasPlus && (v2OrNil == nil || v3OrNil == nil) {
             try throwError(.syntaxError)
         }
         
         let value: Value
-        if !hasV2 && !hasV3 {
+        if v2OrNil == nil && v3OrNil == nil {
             value = Value.dice(0, 0, v1)
+            if areasLog {
+                print("\(currentFieldNameWithIndex): 0к0+\(v1)")
+            }
         } else {
-            value = Value.dice(v1, v2, v3)
+            value = Value.dice(v1, (v2OrNil ?? 0), (v3OrNil ?? 0))
+            if areasLog {
+                print("\(currentFieldNameWithIndex): \(v1)к\(v2OrNil ?? 0)+\(v3OrNil ?? 0)")
+            }
         }
-        
 
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {
             try throwError(.duplicateField)
         }
         currentEntity.replace(name: currentFieldNameWithIndex, value:  value)
-        if areasLog {
-            print("\(currentFieldNameWithIndex): \(v1)к\(v2)+\(v3)")
-        }
     }
 
     private func finalizeCurrentEntity() throws {

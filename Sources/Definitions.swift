@@ -99,8 +99,7 @@ class Definitions {
         try scanner.skipComments()
         while let cu = scanner.peekUtf16CodeUnit(), cu != 91 { // [
             
-            var value: Int64 = 0
-            if scanner.scanInt64(&value) {
+            if let value = scanner.scanInt64() {
                 
                 try scanner.skipComments()
                 if let name = scanner.scanWord() {
