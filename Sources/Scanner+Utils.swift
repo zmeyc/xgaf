@@ -3,7 +3,17 @@
 
 import Foundation
 
+#if os(Linux) || (Windows)
+// CharacterSet.union does not work in SwiftFoundation
+let wordCharacters: CharacterSet = {
+    var c = CharacterSet.whitespacesAndNewlines
+    c.insert(charactersIn: "/;:()[]=")
+    c.invert()
+    return c
+}()
+#else
 let wordCharacters = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: "/;:()[]=")).inverted
+#endif
 
 extension Scanner {
     

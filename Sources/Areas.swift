@@ -256,12 +256,18 @@ class Areas {
             case .dice: try scanDice()
             //default: fatalError()
             }
+            #if !os(Linux) && !os(Windows)
+            // Coredumps on Linux
             assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+            #endif
         }
     }
     
     private func scanNumber() throws {
+        #if !os(Linux) && !os(Windows)
+        // Coredumps on Linux
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
 
         guard let result = scanner.scanInt64() else {
             try throwError(.expectedNumber)
@@ -276,7 +282,10 @@ class Areas {
     }
     
     private func scanEnumeration() throws {
+        #if !os(Linux) && !os(Windows)
+        // Coredumps on Linux
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
 
         let value: Value
         if let number = scanner.scanInt64() {
@@ -304,7 +313,10 @@ class Areas {
     }
     
     private func scanFlags() throws {
+        #if !os(Linux) && !os(Windows)
+        // Coredumps on Linux
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
 
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
@@ -349,7 +361,10 @@ class Areas {
     }
 
     private func scanList() throws {
+        #if !os(Linux) && !os(Windows)
+        // Coredumps on Linux
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
 
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
@@ -390,7 +405,10 @@ class Areas {
     }
 
     private func scanDictionary() throws {
+        #if !os(Linux) && !os(Windows)
+        // Coredumps on Linux
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
         
         let valuesByName = definitions.enumerations.valuesByNameForAlias[currentFieldName]
         
@@ -477,7 +495,9 @@ class Areas {
     }
     
     private func scanLine() throws {
+        #if !os(Linux) && !os(Windows)
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
 
         var result = try scanQuotedText()
         if currentFieldInfo?.flags.contains(.automorph) ?? false {
@@ -494,12 +514,16 @@ class Areas {
     }
     
     private func scanLongText() throws {
+        #if !os(Linux) && !os(Windows)
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
 
         var result = [try scanQuotedText()]
         while true {
             do {
+                #if !os(Linux) && !os(Windows)
                 assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+                #endif
                 try scanner.skipping(CharacterSet.whitespacesAndNewlines) {
                     let nextLine = try scanQuotedText()
                     result.append(nextLine)
@@ -528,7 +552,9 @@ class Areas {
     }
     
     private func scanDice() throws {
+        #if !os(Linux) && !os(Windows)
         assert(scanner.charactersToBeSkipped == CharacterSet.whitespaces)
+        #endif
         
         guard let v1 = scanner.scanInt64() else {
             try throwError(.expectedNumber)
