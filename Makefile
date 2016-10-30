@@ -53,6 +53,6 @@ clean:
 	swift build --clean
 
 distclean: clean
-	rm -rf libroot standalone
+	rm -rf libroot standalone installer
 
 .PHONY: all debug release standalone-release installer-release xcodeproj clean distclean
