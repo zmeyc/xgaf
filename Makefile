@@ -9,6 +9,7 @@ SWIFT_FLAGS =
 endif
 
 ifeq ($(UNAME), CYGWIN)
+ISCC = C:\Program Files (x86)\Inno Setup 5\ISCC.exe
 CYGWIN_DIR = c:\cygwin64
 PREFIX = $(shell pwd)/libroot/cygwin
 STANDALONE_PREFIX = $(shell pwd)/standalone/cygwin
@@ -30,6 +31,7 @@ release:
 ifeq ($(UNAME), CYGWIN)
 standalone-release: release
 	mkdir -p "$(STANDALONE_PREFIX)"	
+	cp ".build/release/xgaf.exe" "$(STANDALONE_PREFIX)"
 	cp "$(CYGWIN_DIR)/bin/cyggcc_s-seh-1.dll" "$(STANDALONE_PREFIX)"
 	cp "$(CYGWIN_DIR)/bin/cygicudata57.dll" "$(STANDALONE_PREFIX)"
 	cp "$(CYGWIN_DIR)/bin/cygicui18n57.dll" "$(STANDALONE_PREFIX)"
@@ -39,6 +41,9 @@ standalone-release: release
 	cp "$(SWIFT_BIN_DIR)/cygswiftCore.dll" "$(STANDALONE_PREFIX)"
 	cp "$(SWIFT_BIN_DIR)/cygswiftGlibc.dll" "$(STANDALONE_PREFIX)"
 	cp "$(SWIFT_BIN_DIR)/cygswiftSwiftOnoneSupport.dll" "$(STANDALONE_PREFIX)"
+
+installer-release: standalone-release
+	"$(shell cygpath --unix "$(ISCC)")" Scripts/cygwin.iss
 endif
 
 xcodeproj:
@@ -50,4 +55,4 @@ clean:
 distclean: clean
 	rm -rf libroot standalone
 
-.PHONY: all debug release standalone-release xcodeproj clean distclean
+.PHONY: all debug release standalone-release installer-release xcodeproj clean distclean
