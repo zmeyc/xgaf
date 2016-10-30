@@ -3,7 +3,7 @@
 
 import Foundation
 
-#if os(Linux) || (Windows)
+#if os(Linux) || os(Windows)
 // CharacterSet.union does not work in SwiftFoundation
 let wordCharacters: CharacterSet = {
     var c = CharacterSet.whitespacesAndNewlines
