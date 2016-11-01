@@ -18,7 +18,12 @@ class Morpher {
         self.cases = cases
     }
     
-    func convertToSimpleAreaFormat(text: String) -> String {
+    func convertToSimpleAreaFormat(text: String, animateByDefault: Bool) -> String {
+
+        let animateOpen: Character    = animateByDefault ? "(" : "["
+        let animateClose: Character   = animateByDefault ? ")" : "]"
+        let inanimateOpen: Character  = animateByDefault ? "[" : "("
+        let inanimateClose: Character = animateByDefault ? "]" : ")"
         var result = ""
         var forms = ""
         state = .copyText
@@ -28,16 +33,16 @@ class Morpher {
             switch state {
             case .copyText:
                 switch character {
-                    case "(":
+                    case animateOpen:
                         state = .copyAnimateForms
-                    case "[":
+                    case inanimateOpen:
                         state = .copyInanimateForms
                     default:
                         result.append(character)
                 }
             case .copyAnimateForms:
                 switch character {
-                    case ")":
+                    case animateClose:
                         result.append(expand(forms: forms, animate: true))
                         forms = ""
                         state = .copyText
@@ -46,7 +51,7 @@ class Morpher {
                 }
             case .copyInanimateForms:
                 switch character {
-                    case "]":
+                    case inanimateClose:
                         result.append(expand(forms: forms, animate: false))
                         forms = ""
                         state = .copyText

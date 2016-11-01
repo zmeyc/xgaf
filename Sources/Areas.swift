@@ -23,6 +23,7 @@ class Areas {
     var fieldDefinitions: FieldDefinitions!
     var morpher: Morpher!
     var currentEntity: Entity!
+    var animateByDefault = false
     var currentFieldInfo: FieldInfo?
     var currentFieldName = "" // struct.name
     var currentFieldNameWithIndex = "" // struct.name[0]
@@ -45,6 +46,7 @@ class Areas {
 
         scanner = Scanner(string: contents)
         currentEntity = nil
+        animateByDefault = false
         currentFieldInfo = nil
         currentFieldName = ""
         currentFieldNameWithIndex = ""
@@ -108,6 +110,7 @@ class Areas {
             case "монстр":
                 try finalizeCurrentEntity()
                 fieldDefinitions = definitions.mobiles
+                animateByDefault = true
             case "комната":
                 try finalizeCurrentEntity()
                 fieldDefinitions = definitions.rooms
@@ -501,7 +504,8 @@ class Areas {
 
         var result = try scanQuotedText()
         if currentFieldInfo?.flags.contains(.automorph) ?? false {
-            result = morpher.convertToSimpleAreaFormat(text: result)
+            result = morpher.convertToSimpleAreaFormat(text: result,
+                animateByDefault: animateByDefault)
         }
         let value = Value.line([result])
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {
@@ -539,7 +543,9 @@ class Areas {
             }
         }
         if currentFieldInfo?.flags.contains(.automorph) ?? false {
-            result = result.map { morpher.convertToSimpleAreaFormat(text: $0) }
+            result = result.map {
+                morpher.convertToSimpleAreaFormat(text: $0, animateByDefault: animateByDefault)
+            }
         }
         let value = Value.longText(result)
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {
@@ -614,6 +620,7 @@ class Areas {
             }
         }
         currentEntity = Entity()
+        animateByDefault = false
         currentEntity.startLine = lineAtUtf16Offset(scanner.scanLocation)
         //print("\(scanner.scanLocation): \(currentEntity.startLine)")
     }
