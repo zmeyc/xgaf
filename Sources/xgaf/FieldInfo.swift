@@ -14,7 +14,7 @@ class FieldInfo {
         var fieldType: FieldType?
         var fieldFlags = FieldFlags()
         
-        for c in flags.lowercased().characters {
+        for c in flags.lowercased() {
             switch c {
                 case "ч": fieldType = .number
                 case "п": fieldType = .enumeration

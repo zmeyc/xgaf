@@ -29,7 +29,7 @@ class Morpher {
         state = .copyText
         animate = false
         
-        for character in text.characters {
+        for character in text {
             switch state {
             case .copyText:
                 switch character {
