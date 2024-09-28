@@ -10,6 +10,8 @@ RUN swift build -c release
 
 FROM swift:6.0.1
 
+RUN apt-get update && apt-get install -y make
+
 COPY --from=builder /app/.build/release/xgaf /usr/local/bin/
 COPY --from=builder /usr/lib/swift/ /usr/lib/swift/
 
