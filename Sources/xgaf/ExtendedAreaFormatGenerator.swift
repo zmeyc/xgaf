@@ -3,7 +3,7 @@
 
 import Foundation
 
-class SimpleAreaFormatGenerator: AreaFormatGenerator {
+class ExtendedAreaFormatGenerator: AreaFormatGenerator {
     let areas: Areas
     
     init(areas: Areas) {
@@ -24,14 +24,14 @@ class SimpleAreaFormatGenerator: AreaFormatGenerator {
         var out = ""
         out.reserveCapacity(256 * 1024)
         
-        generate(entities: areas.items, primaryField: "предмет", appendTo: &out)
-        generate(entities: areas.mobiles, primaryField: "монстр", appendTo: &out)
-        generate(entities: areas.rooms, primaryField: "комната", appendTo: &out)
+        generate(entities: areas.items, enumerations: areas.definitions.enumerations, primaryField: "предмет", appendTo: &out)
+        generate(entities: areas.mobiles, enumerations: areas.definitions.enumerations, primaryField: "монстр", appendTo: &out)
+        generate(entities: areas.rooms, enumerations: areas.definitions.enumerations, primaryField: "комната", appendTo: &out)
         
         return out
     }
     
-    private func generate(entities: [Int64: Entity], primaryField: String, appendTo out: inout String) {
+    private func generate(entities: [Int64: Entity], enumerations: Enumerations, primaryField: String, appendTo out: inout String) {
         
         let sortedIds = entities.keys.sorted()
         for id in sortedIds {
@@ -48,7 +48,7 @@ class SimpleAreaFormatGenerator: AreaFormatGenerator {
                 guard let value = entity.value(named: key) else { continue }
                 
                 let key = key.components(separatedBy: "[").first ?? key
-                out += "\(key.uppercased()) \(value.toSimplifiedFormat)\n"
+                out += "\(key.uppercased()) \(value.toExtendedFormat(fieldAlias: key.lowercased(), enumerations: enumerations))\n"
             }
         }
     }

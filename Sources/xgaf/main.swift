@@ -20,18 +20,26 @@ setlocale(LC_ALL, "")
 
 let arguments = CommandLine.arguments
 
-switch arguments.count {
-case 4:
-    definitionsFilename = arguments[3]
-    fallthrough
+var toExtendedFormat = false
+
+var initialPositionalIndex = 1
+if (arguments.count >= 2 && arguments[1] == "-e") {
+    toExtendedFormat = true
+    initialPositionalIndex += 1
+}
+
+switch arguments.count - initialPositionalIndex {
 case 3:
-    destinationFilename = arguments[2]
+    definitionsFilename = arguments[initialPositionalIndex + 2]
     fallthrough
 case 2:
-    areaFilename = arguments[1]
+    destinationFilename = arguments[initialPositionalIndex + 1]
+    fallthrough
+case 1:
+    areaFilename = arguments[initialPositionalIndex]
 default:
     print("Usage:\n" +
-        "xgaf file.wlx [file.wld] [xgaf.dat]")
+        "xgaf [-e] file.wlx [file.wld] [xgaf.txt]")
     exit(1)
 }
 
@@ -39,12 +47,12 @@ if definitionsFilename == nil {
     #if CYGWIN
     definitionsFilename = try URL(fileURLWithPath: arguments[0])
 	.deletingLastPathComponent()
-        .appendingPathComponent("xgaf.dat", isDirectory: false)
+        .appendingPathComponent("xgaf.txt", isDirectory: false)
         .path
     #else
     definitionsFilename = URL(fileURLWithPath: arguments[0])
 	.deletingLastPathComponent()
-        .appendingPathComponent("xgaf.dat", isDirectory: false)
+        .appendingPathComponent("xgaf.txt", isDirectory: false)
         .path
     #endif
 }
@@ -61,6 +69,9 @@ if destinationFilename == nil {
     case "wlx": destinationExtension = "wld"
     case "mox": destinationExtension = "mob"
     case "obx": destinationExtension = "obj"
+    case "wld": destinationExtension = "wlx"
+    case "mob": destinationExtension = "mox"
+    case "obj": destinationExtension = "obx"
     default:
         print("invalid source file extension, unable to deduce output filename")
         exit(1)
@@ -114,7 +125,8 @@ do {
 if !silent && !brief {
     print("Saving simplified format: \(destinationFilename!)")
 }
-let generator = SimpleAreaFormatGenerator(areas: areas)
+let generator: AreaFormatGenerator = toExtendedFormat ?
+    ExtendedAreaFormatGenerator(areas: areas) : SimpleAreaFormatGenerator(areas: areas)
 do {
     try generator.save(toFileNamed: destinationFilename!)
 } catch {

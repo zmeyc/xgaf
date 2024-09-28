@@ -347,10 +347,10 @@ class Areas {
                     try throwError(.invalidEnumerationValue)
                 }
                 let flags = bitNumber <= 0 ? 0 : 1 << (bitNumber - 1)
-                guard (result & flags) == 0 else {
+                guard (result & Int64(flags)) == 0 else {
                     try throwError(.duplicateValue)
                 }
-                result |= flags
+                result |= Int64(flags)
             } else {
                 break
             }
@@ -479,7 +479,7 @@ class Areas {
                     if let cu = scanner.peekUtf16CodeUnit(), cu == 34 { // "
                         // If a quote is immediately followed by another quote,
                         // this is an escaped quote
-                        scanner.skipString("\"")
+                        _ = scanner.skipString("\"")
                         result += "\""
                         continue
                     } else {
@@ -507,7 +507,7 @@ class Areas {
             result = morpher.convertToSimpleAreaFormat(text: result,
                 animateByDefault: animateByDefault)
         }
-        let value = Value.line([result])
+        let value = Value.line(result)
         if currentEntity.value(named: currentFieldNameWithIndex) != nil {
             try throwError(.duplicateField)
         }
