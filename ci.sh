@@ -16,10 +16,12 @@ is_calver()
 }
 
 version="$(get_version)"
+echo "Version: ${version}"
 
 if is_calver "$version" && [ "$DOCKER_USERNAME" != "" ] && [ "$DOCKER_PASSWORD" != "" ]; then
+    echo "Building and publishing..."
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-    docker build -t xgaf .
+    docker build --platform linux/amd64 -t xgaf .
     docker images
     image="rmud/xgaf"
     version_tag="$image:$version"
@@ -29,6 +31,7 @@ if is_calver "$version" && [ "$DOCKER_USERNAME" != "" ] && [ "$DOCKER_PASSWORD" 
     docker push "$version_tag"
     docker push "$latest_tag"
 else
-    docker build -t xgaf .
+    echo "Building..."
+    docker build --platform linux/amd64 -t xgaf .
 fi
 
